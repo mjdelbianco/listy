@@ -1,33 +1,34 @@
-import React, {useState, useRef} from 'react';
-import { StyleSheet, View, Button } from 'react-native';
-import { RNCamera } from 'react-native-camera';
+import React from 'react';
+import { StyleSheet, View, Image } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
-function Scanner () {
-  const [camera, setCamera] = useState(false)
-  const cameraRef = useRef();
-  const showCamera = () => {
-    setCamera(!camera)
-  }
-
-  const barcodeFound = ({barcode}) => {
-    barcode.forEach(barcode=>console.warn(barcode.data))
-  }
+function Scanner ({showCamera}) {
 
   return (
       <View style={styles.container}>
-        <Button title="SCANNER" onPress={()=>showCamera()}/>
-          {camera && <RNCamera style={styles.camera} getRef={cameraRef} onBarCodeRead={()=> barcodeFound()}/>}
+        <TouchableOpacity style={styles.scan} onPress={()=>showCamera()}>
+          <Image source={require('../assets/scan.png')} style={styles.barcodeIcon}/>
+        </TouchableOpacity>
       </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    zIndex: 3,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    position: 'relative',
+    backgroundColor: 'rgb(31,207,193)',
+    marginBottom: 7,
   },
-  camera: {
-    flex: 1,
-  },
+  barcodeIcon: {
+    margin: 5,
+    width: 70,
+    height: 50,
+    opacity: 0.8,
+  }
 });
 
 export default Scanner;
