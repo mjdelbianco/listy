@@ -1,31 +1,51 @@
-import React, {useState, Fragment} from 'react';
-import { StyleSheet, Button, View, Text } from 'react-native';
+import React, {useState} from 'react';
+import { StyleSheet, Button, View, Text, Image, Alert } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainScreen from './components/MainScreen'
-import { TextInput } from 'react-native-gesture-handler';
+import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
+import { v4 as uuidv4 } from 'uuid';
 
+
+// list = {name: {key: uuidv4(), name: "lettuce", barcode_number: 1234, completed: false}}
+
+// [{key: uuid, name: name, item: [{},{},{}]}, {shop list 2}]
 export default function App() {
-  const [user, setUser] = useState('');
-  const [showUserInput, setShowUserInput] = useState('true')
-  const [userContent, setUserContent] = useState('')
+  const [input, setInput] = useState(false);
+  const [inputContent, setInputContent] = useState('');
+  const [shoppingLists, setShoppingLists] = useState([]);
+
+  const addList = (listName) => {
+    if (shoppingLists.some(list => list.name === listName)) {
+      Alert.alert('A list with that title already exists')
+    } else {
+      setShoppingLists( shoppingLists => {
+        return [{key: uuidv4(), name: listName},...shoppingLists]
+      });
+      Alert.alert('List created');
+      console.log(shoppingLists)
+    }
+  }
 
   const showInput = () => {
-    setShowUserInput(!showUserInput)
+    setInput(!input)
   }
 
   function HomeScreen({navigation}) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>Welcome <Text style={styles.text} onPress={showInput}>{user}</Text></Text>
-        <TextInput value={userContent} onChange={setUserContent} onSubmitEditing={(event) => {
-          const text = event.nativeEvent.text;
-          console.log(text)
-          if (text) {
-            setUser(text);
-            }
-          }}
-        placeholder='Enter your name'/>
+        <Text style={styles.text}>Create your shopping lists</Text>
+        <TouchableOpacity style={styles.addArea} onPress={()=>showInput()}>
+          <Image source={require('./assets/plus.png')} style={styles.addIcon}/>
+          {input && <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} onSubmitEditing={(event) => {
+            const text = event.nativeEvent.text;
+            if (text) {
+              addList(text);
+              setInputContent('');
+              showInput();
+              }
+            }}/>}
+      </TouchableOpacity>
         <Button
         title="Go to Main"
         onPress={() => navigation.navigate('MainScreen')}
@@ -55,8 +75,34 @@ const styles = StyleSheet.create({
       backgroundColor: "#F5FCFF"
     },
     text: {
-      fontSize: 20,
+      fontSize: 40,
       textAlign: "center",
-      margin: 10
+      margin: 10,
+      padding:10
+    },
+    addArea: {
+      zIndex: 1,
+      flexDirection: 'row-reverse',
+      alignItems: 'center',
+      margin: 10,
+      marginTop: 3,
+    },
+    addIcon: {
+      margin: 2,
+      width: 40,
+      height: 40,
+      padding: 17,
+    },
+    input: {
+      zIndex: 2,
+      height: 40,
+      borderColor:'gray',
+      borderWidth: 2,
+      paddingHorizontal: 5,
+      paddingVertical: 1,
+      borderRadius: 3,
+      textDecorationLine: 'none',
+      fontSize: 20,
+      width:200
     }
   });

@@ -9,7 +9,7 @@ function List ({items, isCompleted, onSwipeRight}) {
         <FlatList
           data={items}
           renderItem={({item})=> <Item item={item} isCompleted={isCompleted} onSwipeRight={onSwipeRight} />}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.key}
         />
       </View>
   );

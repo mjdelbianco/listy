@@ -1,8 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import React, {useState} from 'react';
-import { StyleSheet, View, Alert, Button } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import React, {useState, useEffect} from 'react';
+import { StyleSheet, View, Alert } from 'react-native';
 import 'react-native-get-random-values';
+import AsyncStorage from '@react-native-community/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import Header from './header';
 import Scanner from './scanner';
@@ -11,13 +11,36 @@ import processBarcode from '../ApiService';
 import ManualInput from './manualInput';
 import Camera from './camera';
 
-export default function MainScreen() {
-  const [items, setItems] = useState([
-    {key: uuidv4(), name: "lettuce", barcode_number: 1234, completed: false},
-    {key: uuidv4(), name: "mustard", barcode_number: 3456, completed: false},
-    {key: uuidv4(), name: "apple", barcode_number: 54455, completed: false},
-    {key: uuidv4(), name: "banana", barcode_number: 45455, completed: false}]);
+
+
+export default function MainScreen({shoppingLists}) {
+
+  const [items, setItems] = useState([]);
   const [camera, setCamera] = useState(false);
+
+  useEffect( () => {
+    const setUpdateState = async () => {
+      const stringified = await JSON.stringify(items);
+    try {
+      await AsyncStorage.setItem('storageKey', stringified);
+    } catch (e) {
+      console.log('Error message', e)
+        }}
+      setUpdateState()
+  }, [items])
+
+  useEffect( () => {
+    const getState = async () => {
+      try {
+      const jsonValue = await AsyncStorage.getItem('storageKey');
+      const data = await JSON.parse(jsonValue || []);
+      setItems(data);
+    } catch (e) {
+      console.log('Error message', e)
+    }
+    }
+    getState();
+  }, [])
 
   const showCamera = () => {
     setCamera(!camera)
@@ -42,7 +65,6 @@ export default function MainScreen() {
       setItems(items=> {
         Alert.alert('Added: blabla')
         return [{key: uuidv4(), name: 'whatever', barcode_number: toLookFor, completed: false},...items]
-
         });
         console.log(items, 'ITEEEMS SET')
     } else {
@@ -69,6 +91,7 @@ export default function MainScreen() {
       })
     }
   }
+
 
   return (
     <View style={styles.container}>

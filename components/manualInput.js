@@ -3,26 +3,20 @@ import { StyleSheet, TextInput, Image, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 function ManualInput ({inputManually}) {
-  const [input, setInput] = useState(false);
   const [inputContent, setInputContent] = useState('');
-
-  const showInput = () => {
-    setInput(!input)
-  }
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.addArea} onPress={()=>showInput()}>
+      <View style={styles.addArea}>
           <Image source={require('../assets/plus.png')} style={styles.addIcon}/>
-          {input && <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} onSubmitEditing={(event) => {
+          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} onSubmitEditing={(event) => {
             const text = event.nativeEvent.text;
             if (text) {
               inputManually(text);
               setInputContent('');
-              showInput();
               }
-            }}/>}
-      </TouchableOpacity>
+            }}/>
+      </View>
     </View>
   )
 }
