@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import { StyleSheet, TextInput, Image, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 function ManualInput ({inputManually}) {
   const [inputContent, setInputContent] = useState('');
