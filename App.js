@@ -1,181 +1,174 @@
 import React, {useState, useEffect} from 'react';
-import { StyleSheet, View, Text, Image, Alert } from 'react-native';
-import Modal from 'react-native-modal';
+import { StyleSheet, Share, View, Text, Image, Alert, TouchableOpacity, FlatList, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { TextInput, TouchableOpacity, FlatList } from 'react-native-gesture-handler';
+import 'react-native-get-random-values'
 import { v4 as uuidv4 } from 'uuid';
+import processBarcode from './ApiService'
 import List from './components/list';
-import _ from 'lodash'; //uninstall
+import MainScreen from './components/MainScreen';
+import AddListModal from './components/addListModal';
+
 
 export default function App() {
-
-  const [inputList, setInputList] = useState('');
+  const [title, setTitle] = useState('title')
   const [shoppingLists, setShoppingLists] = useState([
-    {key: uuidv4(), name: 'List1',
+    {key: uuidv4(),
+    name: 'Lunch',
     items: [
-      {key: uuidv4(), name: 'item 1', barcode_number: 1, completed: false},
-      {key: uuidv4(), name: 'item 11', barcode_number: 11, completed: false},{key: uuidv4(), name: 'item 111', barcode_number: 111, completed: false}]},
-    {key: uuidv4(), name: 'List2',
+      {key: uuidv4(), name: 'Banana', barcode_number: 1,  completed: false},
+      {key: uuidv4(), name: 'Lettuce', barcode_number: 11, completed: false},{key: uuidv4(), name: 'Blueberries', barcode_number: 111, completed: false}]},
+    {key: uuidv4(),
+      name: 'Week list',
       items: [
-        {key: uuidv4(), name: 'item 2', barcode_number: 2, completed: false},
-        {key: uuidv4(), name: 'item 22', barcode_number: 22, completed: false},{key: uuidv4(), name: 'item 222', barcode_number: 222, completed: false}]}]);
+        {key: uuidv4(), name: 'Bread', barcode_number: 2, completed: false},
+        {key: uuidv4(), name: 'Coffee', barcode_number: 22, completed: false},{key: uuidv4(), name: 'Soil for plants', barcode_number: 222, completed: false}]}]);
 
-  const [addListModal, setAddListModal] = useState(false);
+    const [addListModal, setAddListModal] = useState(false);
+    const showModal = () => {
+      setAddListModal(!addListModal)
+    }
 
   useEffect( () => {
+    console.log('inside use effect in app js')
     const setUpdateLists = async () => {
       const stringified = await JSON.stringify(shoppingLists);
-    try {
-      await AsyncStorage.setItem('storageLists', stringified);
+      try {
+      await AsyncStorage.setItem('newStorage', stringified);
     } catch (e) {
       console.log('Error message', e)
         }}
         setUpdateLists()
-  }, [shoppingLists])
+  }, [])
 
   useEffect( () => {
     const getLists = async () => {
       try {
-      const jsonValue = await AsyncStorage.getItem('storageLists');
+      const jsonValue = await AsyncStorage.getItem('newStorage');
       const data = await JSON.parse(jsonValue || []);
       setShoppingLists(data);
-    } catch (e) {
+      } catch (e) {
       console.log('Error message', e)
-    }
+      }
     }
     getLists();
   }, [])
 
   const addList = (listName) => {
     if (shoppingLists.some(list => list.name === listName)) {
-      Alert.alert('A list with that title already exists')
+      Alert.alert('A list with that title already exists');
     } else {
       setShoppingLists( shoppingLists => {
         return [{key: uuidv4(), name: listName, items: []},...shoppingLists]
       });
-      Alert.alert('List created');
-      console.log(shoppingLists)
+      Alert.alert(`${listName} created`);
     }
   }
 
+  const deleteList = (listName) => {
+    setShoppingLists( shoppingLists => {
+      return [...shoppingLists.filter(list => list.name !== listName)]
+    });
+    Alert.alert(`${listName} has been deleted`);
+  }
+
+  const onShare = (items) => {
+    items = items.map(item => ' ' + item.name).toString()
+    items = `Items to buy: ${items}`
+    Share.share({
+      message: items.toString()
+      })
+    .then(res => console.log(res))
+    .catch(e => console.log(e));
+    };
+
   const isCompleted = (key) => {
     setShoppingLists(prevList => {
-      let list = []
+      let listItems = [];
       for (let i=0; i<prevList.length; i++) {
-        let listItems = []
-        if (prevList[i].items && prevList[i].items.some(i => i.key===key)) {
-          list = prevList[i]
-          listItems = list.items
+        if (prevList[i].items.some(i => i.key===key)) {
+          listItems = prevList[i].items
           let itemToUpdate = listItems.find(item => item.key === key);
           itemToUpdate.completed = !itemToUpdate.completed
-          listItems = [...listItems, {...itemToUpdate}]
-          let listOne = [...list.items, ...listItems]
-          list = {...list,...listOne}
         }
       }
-      return [...shoppingLists] //NOT WORKING
+      return [...prevList]
     })
   }
 
   const deleteItem = (key) => {
     setShoppingLists(prevList => {
-      let list = []
+      let list;
       for (let i=0; i<prevList.length; i++) {
         let listItems = []
         if (prevList[i].items && prevList[i].items.some(i => i.key===key)) {
           list = prevList[i]
           listItems = list.items
           const filteredListItems = listItems.filter(item => item.key !==key)
-          listItems = filteredListItems
-          list  = {...list, items:[...listItems] }
+          prevList[i].items = [...filteredListItems]
         }
       }
-      return [...shoppingLists] //NOT WORKING
+      return [...prevList]
     })
   }
 
-//FIXXX NEED HELP
-  const inputManually = (value) => {
+  const inputManually = (product, list) => {
+    setTitle((oldTitle)=> oldTitle + 'a' )
     setShoppingLists(prevList => {
-      let list = []
       for (let i=0; i<prevList.length; i++) {
-        let listItems = []
-        if (prevList[i].items) {
-
-          let newItem = {key: uuidv4(), name: value, barcode_number: 0, completed: false}
-          list = prevList[i]
-          listItems = list.items.push(newItem)
-          listItems = [...listItems, {...newItem}]
-          console.log(listItems, 'list it')
-          let listOne = [...list.items, ...listItems]
-          list = {...list,...listOne}
+        if (prevList[i].name === list) {
+          let newItem = {key: uuidv4(), name: product, barcode_number: 0, completed: false}
+          const updatedItems = [newItem, ...prevList[i].items, ];
+          prevList[i].items = updatedItems;
         }
       }
-      return [...shoppingLists]
+      return [...prevList]
     })
   }
 
-  const barcodeFound = (barcode) => {
+  const barcodeFound = (barcode, list) => {
     let toLookFor = barcode.data;
-    if (!items.some(item => item.barcode_number === toLookFor)) {
-      setItems(items=> {
-        Alert.alert('Added: blabla')
-        return [{key: uuidv4(), name: 'whatever', barcode_number: toLookFor, completed: false},...items]
-        });
-    } else {
-      Alert.alert('Already on the list')
-      }
-        // processBarcode(barcode.data)
-        // .then(parsed => {
-        //   setItems(items => {
-        //     Alert.alert(`Added: ${parsed.products[0].product_name}`);
-        //     return [...items, {key: uuidv4(), name: parsed.products[0].product_name, barcode_number: parsed.products[0].barcode_number, completed: false}]
-        //   });
-        // })
-
-    }
-
-  const showModal = () => {
-    setAddListModal(!addListModal)
+    processBarcode(toLookFor)
+    .then(parsed => {
+      setShoppingLists(prevList => {
+        for(let i=0; i<prevList.length; i++) {
+          if (prevList[i].name === list && !prevList[i].items.some(item => item.barcode_number === toLookFor)) {
+            Alert.alert(`Added: ${parsed.products[0].product_name}`);
+            const newBarcodeItem = {key: uuidv4(), name: parsed.products[0].product_name, barcode_number: parsed.products[0].barcode_number, completed: false}
+            const updatedBarcodeItems = [newBarcodeItem, ...prevList[i].items];
+            prevList[i].items = updatedBarcodeItems;
+            return [...prevList]
+          } else {
+            Alert.alert(`${parsed.products[0].product_name} already on the list`)
+            return [...prevList]
+          }
+        }
+      });
+    })
   }
 
   function HomeScreen({navigation}) {
     return (
-
-      <View style={styles.container}>
-
-        <View style={styles.container}>
-          <Text style={styles.text}>Create your shopping lists</Text>
-          <TouchableOpacity style={styles.addArea} onPress={()=>showModal()}>
-            <Image source={require('./assets/plus.png')} style={styles.addIcon}/>
-
-            {addListModal ?
-              <Modal style={{backgroundColor:'#000000aa', margin: 0, flex:1}} transparent={true} visible={true} onBackdropPress={()=>showModal()}>
-                  <View style={styles.addListModal}>
-                    <Text>Add new list title</Text>
-                    <TextInput style={styles.input} placeholder='Insert list name...' value={inputList} onChangeText={setInputList} onSubmitEditing={(event) => {
-                      const text = event.nativeEvent.text;
-                      if (text) {
-                      addList(text);
-                      setInputList('');
-                      showModal();
-                      }
-                    }}/>
-                  </View>
-              </Modal>
-            : <Text style={styles.addList}>Add list</Text>}
-
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.lists}>
+      <View style={styles.mainContainer}>
+        <ImageBackground style={styles.backgroundImage} source={require('./assets/background.jpg')}>
+          <View style={styles.mainMain}>
+            <View style={styles.container}>
+              <Text style={styles.text}> Listy </Text>
+              <Text style={styles.textBuddy}> Your Shopping Buddy </Text>
+              <TouchableOpacity style={styles.addArea} onPress={()=>showModal()}>
+                <Image source={require('./assets/plusIcon.png')} style={styles.addIcon}/>
+              </TouchableOpacity>
+                <Text style={styles.addList}>Add list</Text>
+                <AddListModal addList={addList} addListModal={addListModal} showModal={showModal}/>
+            </View>
+          <View style={styles.lists}>
           <FlatList data={shoppingLists} keyExtractor={item => item.key} horizontal={true} showsHorizontalScrollIndicator={false}
-          renderItem={({item}) => <List deleteItem={deleteItem} isCompleted={isCompleted} item={item} shoppingLists={shoppingLists} inputManually={inputManually} barcodeFound={barcodeFound}/>}
+          renderItem={({item}) => <List title={title} navigation={navigation} deleteItem={deleteItem} isCompleted={isCompleted} item={item} onShare={onShare} deleteList={deleteList} shoppingLists={shoppingLists} inputManually={inputManually} barcodeFound={barcodeFound} />}
           />
         </View>
-
+      </View>
+      </ImageBackground>
       </View>
     );
   }
@@ -186,64 +179,89 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="Home" component={HomeScreen}/>
+        <Stack.Screen name='MainScreen'>
+          {props => <MainScreen title={title} onShare={onShare} deleteItem={deleteItem} isCompleted={isCompleted} shoppingLists={shoppingLists} deleteList={deleteList} inputManually={inputManually} barcodeFound={barcodeFound}
+          {...props} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
 const styles = StyleSheet.create({
-    container: {
-      flex:1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'white',
-      paddingBottom: 15
-    },
-    text: {
-      fontSize: 40,
-      textAlign: 'center',
-      margin: 10,
-      padding:10
-    },
-    addArea: {
-      zIndex: 1,
-      flexDirection: 'row-reverse',
-      alignItems: 'center',
-    },
-    addIcon: {
-      margin: 2,
-      width: 40,
-      height: 40,
-      padding: 17,
-    },
-    input: {
-      zIndex: 2,
-      height: 40,
-      borderColor:'gray',
-      borderWidth: 2,
-      paddingHorizontal: 5,
-      paddingVertical: 1,
-      borderRadius: 3,
-      textDecorationLine: 'none',
-      fontSize: 20,
-      width:200
-    },
-    lists: {
-      flex: 1,
-      width: 300,
-      height: 300
-    },
-    addList: {
-      fontSize: 20,
-      opacity: 0.4,
-      marginRight: 10
-    },
-    addListModal: {
-      backgroundColor: 'lightblue',
-      marginVertical: 200,
-      marginHorizontal: 50,
-      padding: 30,
-      borderRadius: 5,
-      flex: 1,
-    }
-  });
+  mainContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 0
+  },
+  mainMain: {
+    backgroundColor:  '#00000020',
+    color:'#FFFFFF',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 0,
+  },
+  container: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 8,
+    flex: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    marginTop: 50,
+    marginHorizontal: 50,
+    borderRadius: 50,
+    borderColor: '#b2afa8',
+    borderWidth: 3,
+  },
+  backgroundImage: {
+    flex:1,
+    resizeMode: 'stretch',
+    justifyContent: 'center',
+    margin: 0
+  },
+  text: {
+    fontSize: 50,
+    textAlign: 'center',
+    color: 'black',
+    fontWeight: 'bold',
+    fontFamily: 'cursive'
+  },
+  textBuddy: {
+    fontFamily: 'serif',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingBottom: 30,
+    marginHorizontal: 40,
+    color: 'black',
+  },
+  addArea: {
+    elevation: 2,
+    borderColor: 'gray',
+    backgroundColor: '#89a6aa',
+    borderWidth: 2,
+    borderRadius: 3,
+    padding: 3,
+    marginHorizontal: 3
+  },
+  addIcon: {
+    margin: 2,
+    width: 35,
+    height: 35,
+  },
+  lists: {
+    flex: 6,
+    marginTop: 10,
+    marginHorizontal: 15
+  },
+  addList: {
+    fontSize: 14,
+    fontFamily: 'serif',
+    opacity: 0.4,
+  },
+});

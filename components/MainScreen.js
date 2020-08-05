@@ -1,128 +1,147 @@
-import { StatusBar } from 'expo-status-bar';
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, View, Alert } from 'react-native';
-import 'react-native-get-random-values';
-import AsyncStorage from '@react-native-community/async-storage';
-import { v4 as uuidv4 } from 'uuid';
-import Header from './header';
+import React, { useState } from 'react';
+import { CheckBox, StyleSheet, View, FlatList, Text, SafeAreaView, Image } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import Scanner from './scanner';
-import List from './list';
-import processBarcode from '../ApiService';
 import ManualInput from './manualInput';
+import MenuModal from './menuModal';
 import Camera from './camera';
 
 
+function MainScreen ({route, onShare, deleteList, navigation, inputManually, barcodeFound, deleteItem, isCompleted }) {
 
-export default function MainScreen({shoppingLists}) {
-
-  const [items, setItems] = useState([]);
+  const { item } = route.params
   const [camera, setCamera] = useState(false);
-
-  useEffect( () => {
-    const setUpdateState = async () => {
-      const stringified = await JSON.stringify(items);
-    try {
-      await AsyncStorage.setItem('storageKey', stringified);
-    } catch (e) {
-      console.log('Error message', e)
-        }}
-      setUpdateState()
-  }, [items])
-
-  useEffect( () => {
-    const getState = async () => {
-      try {
-      const jsonValue = await AsyncStorage.getItem('storageKey');
-      const data = await JSON.parse(jsonValue || []);
-      setItems(data);
-    } catch (e) {
-      console.log('Error message', e)
-    }
-    }
-    getState();
-  }, [])
+  const [menu, setMenu] = useState(false);
+  const [image, setImage] = useState(false);
 
   const showCamera = () => {
     setCamera(!camera)
   }
-
-  const isCompleted = (name) => {
-    setItems(items => {
-      const toChange = items.find(item => item.name === name);
-      toChange.completed = toChange.completed ? false : true;
-      return [...items];
-    });
+  const showMenuModal = () => {
+    setMenu(!menu)
   }
-
-  const onSwipeRight = (name) => {
-    setItems(items => items.filter(item => item.name !== name));
-    return [...items]
+  const showImageModal = () => {
+    setImage(!image)
   }
-
-  const barcodeFound = (barcode) => {
-    let toLookFor = barcode.data;
-    if (!items.some(item => item.barcode_number === toLookFor)) {
-      setItems(items=> {
-        Alert.alert('Added: blabla')
-        return [{key: uuidv4(), name: 'whatever', barcode_number: toLookFor, completed: false},...items]
-        });
-        console.log(items, 'ITEEEMS SET')
-    } else {
-      Alert.alert('Already on the list')
-      }
-        // processBarcode(barcode.data)
-        // .then(parsed => {
-        //   setItems(items => {
-        //     Alert.alert(`Added: ${parsed.products[0].product_name}`);
-        //     return [...items, {key: uuidv4(), name: parsed.products[0].product_name, barcode_number: parsed.products[0].barcode_number, completed: false}]
-        //   });
-        // })
-
-      console.log(items, 'ITEEEEEMs ALREADY EXISTS')
-
-    }
-
-  const inputManually = (value) => {
-    if (items.some(item => item.name === value)) {
-      Alert.alert('Already on the list')
-    } else {
-      setItems(items => {
-        return [{key: uuidv4(), name: value, barcode_number: 0, completed: false},...items]
-      })
-    }
-  }
-
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-          backgroundColor = 'rgb(31,207,193)'
-          barStyle = "dark-content"
-          hidden = {false}
-          translucent = {true}
-        />
-      <Header title="Shopping List"/>
-      <List items={items} isCompleted={isCompleted} onSwipeRight={onSwipeRight}/>
-      <ManualInput inputManually={inputManually}/>
-      <Camera barcodeFound={barcodeFound} showCamera={showCamera} camera={camera}/>
+    <SafeAreaView style={styles.container}>
+
+      <View style={styles.topContainer}>
+        <TouchableOpacity style={styles.backArea} onPress={()=>navigation.goBack()}>
+          <Image source={require('../assets/backIcon.png')} style={styles.backIcon}/>
+        </TouchableOpacity>
+
+        <Text style={styles.listTitle}>{item.name}</Text>
+
+        <TouchableOpacity style={styles.menu} onPress={()=>showMenuModal()}>
+          <Image source={require('../assets/more.png')} style={styles.menuIcon}/>
+        </TouchableOpacity>
+
+      </View>
+
+      <MenuModal item={item} navigation={navigation} onShare={onShare} deleteList={deleteList} menu={menu} showMenuModal={showMenuModal}/>
+
+      <FlatList
+        data={item.items}
+        keyExtractor={({key})=> key}
+        renderItem={({item}) =>
+        <View style={styles.itemContainer}>
+          <TouchableOpacity style={styles.itemView} onPress={()=>showImageModal()}>
+            <CheckBox value={item.completed} onValueChange={()=>{isCompleted(item.key)}} style={{opacity: 0.5}}/>
+            <Text style={[styles.productName, {textDecorationLine: item.completed ? 'line-through' : 'none', color: item.completed ? 'grey' : 'black'}]} onPress={()=>{isCompleted(item.key)}}>{item.name}</Text>
+            <TouchableOpacity style={styles.deleteIconArea} onPress={() => {deleteItem(item.key)}}>
+              <Image source={require('../assets/close.png')} style={styles.deleteIcon}/>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </View>}
+      />
+
+      <ManualInput item={item} inputManually={inputManually}/>
+      <Camera item={item} barcodeFound={barcodeFound} showCamera={showCamera} camera={camera}/>
       <Scanner barcodeFound={barcodeFound} showCamera={showCamera} camera={camera}/>
-    </View>
+
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 25,
-    justifyContent: 'center',
+    backgroundColor: '#ebe2cf',
+    borderRadius: 5,
+  },
+  topContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    borderBottomColor: '#ea6856',
+    borderBottomWidth: 4,
+    marginHorizontal: 15,
+    marginBottom: 10,
+    marginTop: 15,
+    paddingBottom: 5,
+    borderRadius: 5,
+
+  },
+  listTitle: {
+    flex:1,
+    fontSize: 34,
+    color: 'black',
+    fontFamily: 'serif',
+    marginHorizontal: 10,
+    flexWrap: 'wrap'
+  },
+  itemContainer: {
+    flex: 1,
+    flexWrap: 'wrap',
+    marginHorizontal: 10,
+    padding: 3,
+    borderRadius: 5,
   },
   itemView: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 10,
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: 'white',
+    flex: 1,
+    borderRadius: 5,
+    height: 'auto',
+    elevation: 2
   },
   productName: {
-    fontSize: 16,
+    paddingLeft: 4,
+    fontSize: 18,
     color: 'black',
+    fontFamily: 'serif',
+    flexWrap: 'wrap',
+    flex: 1,
   },
+  backIcon: {
+    margin: 2,
+    width: 20,
+    height: 20,
+    opacity: 0.4
+  },
+  menu: {
+    marginLeft: 'auto',
+  },
+  menuIcon: {
+    marginLeft: 10,
+    width: 25,
+    height: 25,
+    opacity: 0.7
+  },
+  deleteIconArea: {
+    marginLeft: 'auto'
+  },
+  deleteIcon: {
+    width: 15,
+    height: 15,
+    opacity: 0.1
+  }
 });
+
+  export default MainScreen;
+
+

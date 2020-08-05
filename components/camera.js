@@ -1,23 +1,23 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
+import BarcodeMask from 'react-native-barcode-mask';
 
-function Camera ({barcodeFound, camera, showCamera}) {
+function Camera ({barcodeFound, camera, showCamera, item}) {
 
   return (
-    camera && <RNCamera style={styles.camera} onBarCodeRead={(barcode)=> {barcodeFound(barcode); showCamera()}}
-      />
+    (camera && <RNCamera style={styles.camera} onBarCodeRead={(barcode)=> {barcodeFound(barcode, item.name); showCamera()}}>
+        <BarcodeMask />
+      </RNCamera>)
   );
 }
 
 const styles = StyleSheet.create({
   camera: {
-    flex: 1,
-    flexGrow: 1,
-    height: 'auto',
-    zIndex: 2,
+    flex:1,
+    zIndex: 3,
     alignSelf: 'stretch',
-    bottom: 80
+    bottom: 100
   }
 });
 

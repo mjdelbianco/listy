@@ -1,32 +1,50 @@
 import React, {useState} from 'react';
-import { StyleSheet, TextInput, Image, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, TextInput, Image, View } from 'react-native';
 
-function ManualInput ({inputManually}) {
+function ManualInput ({inputManually, item}) {
   const [inputContent, setInputContent] = useState('');
+  const name = item.name;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.addArea}>
-          <Image source={require('../assets/plus.png')} style={styles.addIcon}/>
-          <TextInput style={styles.input} value={inputContent} onChangeText={setInputContent} onSubmitEditing={(event) => {
-            const text = event.nativeEvent.text;
-            if (text) {
-              inputManually(text);
-              setInputContent('');
-              }
-            }}/>
-      </View>
+    <View style={styles.addArea}>
+      <TouchableOpacity style={styles.iconContainer} onPress={()=>{
+        if (inputContent) {
+          inputManually(inputContent, name);
+          setInputContent('');
+          }}}>
+        <Image source={require('../assets/plusIcon.png')} style={styles.addIcon}/>
+      </TouchableOpacity>
+      <TextInput style={styles.input} defaultValue={inputContent} onChangeText={setInputContent} onSubmitEditing={(event) => {
+        const text = event.nativeEvent.text;
+        if (text) {
+          inputManually(text, name);
+          setInputContent('');
+          }
+        }}/>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   addArea: {
-    zIndex: 1,
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    margin: 10,
-    marginTop: 3,
+    marginHorizontal: 15,
+    marginVertical: 7,
+    marginTop: 10,
+  },
+  iconContainer: {
+    borderColor: 'gray',
+    backgroundColor: '#ea6856',
+    borderWidth: 2,
+    borderRadius: 3,
+    padding: 3,
+    marginHorizontal: 3
+  },
+  addIcon: {
+    margin: 1,
+    width: 28,
+    height: 28,
   },
   input: {
     height: 40,
@@ -37,17 +55,8 @@ const styles = StyleSheet.create({
     flexGrow: 2,
     borderRadius: 3,
     textDecorationLine: 'none',
-    marginLeft: 12,
     fontSize: 20
   },
-  addIcon: {
-    margin: 2,
-    width: 40,
-    height: 40,
-    padding: 17,
-    marginRight: 12,
-    marginLeft: 5,
-  }
 });
 
 export default ManualInput;

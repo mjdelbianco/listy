@@ -1,12 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 
 function Scanner ({showCamera}) {
 
   return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.scan} onPress={()=>showCamera()}>
+        <TouchableOpacity onPress={()=>showCamera()}>
           <Image source={require('../assets/scan.png')} style={styles.barcodeIcon}/>
         </TouchableOpacity>
       </View>
@@ -15,16 +14,15 @@ function Scanner ({showCamera}) {
 
 const styles = StyleSheet.create({
   container: {
-    zIndex: 3,
     alignSelf: 'center',
     justifyContent: 'center',
-    flexDirection: 'column',
-    position: 'relative',
-    backgroundColor: 'rgb(31,207,193)',
-    marginBottom: 7,
+    backgroundColor: '#ea6856',
+    marginBottom: 5,
+    borderRadius: 3,
+    elevation: 5
   },
   barcodeIcon: {
-    margin: 5,
+    margin: 3,
     width: 70,
     height: 50,
     opacity: 0.8,

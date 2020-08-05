@@ -1,9 +1,7 @@
-const APIKEY = '&formatted=y&key=y35oh298hu2qo6qz08senhjdf97fao';
+const APIKEY = '&formatted=y&key=yn2q2y7kl63te9ncms2eionqd2kwy3';
 const URL_PATH = 'https://api.barcodelookup.com/v2/products?barcode='
-//https://api.barcodelookup.com/v2/products?barcode=9780140157376&key=y35oh298hu2qo6qz08senhjdf97fao
 
 export default processBarcode = async (barcode) => {
-  console.log(barcode, "BARCOOOODE")
   return await fetchData(barcode);
   };
 
