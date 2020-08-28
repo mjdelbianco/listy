@@ -1,21 +1,36 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, FlatList, Text, View, Image } from 'react-native';
 
-function List ({ navigation, item }) {
-
+function List({ navigation, item }) {
   return (
     <>
-      <TouchableOpacity style={styles.container} onPress={() => navigation.navigate('MainScreen', {item})}>
-          <View style={styles.listTitleView}>
-            <Text style={styles.listTitle}>{item.name}</Text>
-            <Image style={styles.icon} source={require('../assets/edit.png')}/>
-          </View>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={styles.container}
+        onPress={() => navigation.navigate('MainScreen', { item })}
+      >
+        <View style={styles.listTitleView}>
+          <Text style={styles.listTitle}>{item.name}</Text>
+          <Image style={styles.icon} source={require('../assets/edit.png')} />
+        </View>
 
-          <FlatList
+        <FlatList
           data={item.items}
-          renderItem={({item}) => <Text style={[styles.itemName, {textDecorationLine: item.completed ? 'line-through' : 'none', color: item.completed ? 'grey' : 'black'}]}>{item.name}</Text>}
-          keyExtractor={(item) => item.key}
-          />
+          renderItem={({ item }) => (
+            <Text
+              style={[
+                styles.itemName,
+                {
+                  textDecorationLine: item.completed ? 'line-through' : 'none',
+                  color: item.completed ? 'grey' : 'black',
+                },
+              ]}
+            >
+              {item.name}
+            </Text>
+          )}
+          keyExtractor={item => item.key}
+        />
       </TouchableOpacity>
     </>
   );
@@ -62,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2d2c32',
     fontFamily: 'serif',
-    fontWeight: '200'
+    fontWeight: '200',
   },
   icon: {
     alignSelf: 'flex-start',
@@ -70,7 +85,8 @@ const styles = StyleSheet.create({
     margin: 2,
     width: 15,
     height: 15,
-    opacity: 0.5
-}});
+    opacity: 0.5,
+  },
+});
 
 export default List;

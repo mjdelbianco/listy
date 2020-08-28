@@ -1,154 +1,170 @@
-import React, {useState, useEffect} from 'react';
-import { StyleSheet, Share, View, Text, Image, Alert, TouchableOpacity, FlatList, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+
+import {
+  StyleSheet,
+  Share,
+  View,
+  Text,
+  Image,
+  Alert,
+  TouchableOpacity,
+  FlatList,
+  ImageBackground,
+  ToastAndroid,
+} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import 'react-native-get-random-values'
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import processBarcode from './ApiService'
+import processBarcode from './ApiService';
 import List from './components/list';
 import MainScreen from './components/MainScreen';
 import AddListModal from './components/addListModal';
 
-
 export default function App() {
-  const [title, setTitle] = useState('title')
-  const [shoppingLists, setShoppingLists] = useState([
-    {key: uuidv4(),
-    name: 'Lunch',
-    items: [
-      {key: uuidv4(), name: 'Banana', barcode_number: 1,  completed: false},
-      {key: uuidv4(), name: 'Lettuce', barcode_number: 11, completed: false},{key: uuidv4(), name: 'Blueberries', barcode_number: 111, completed: false}]},
-    {key: uuidv4(),
-      name: 'Week list',
-      items: [
-        {key: uuidv4(), name: 'Bread', barcode_number: 2, completed: false},
-        {key: uuidv4(), name: 'Coffee', barcode_number: 22, completed: false},{key: uuidv4(), name: 'Soil for plants', barcode_number: 222, completed: false}]}]);
+  const [title, setTitle] = useState('title');
+  const [shoppingLists, setShoppingLists] = useState([]);
 
-    const [addListModal, setAddListModal] = useState(false);
-    const showModal = () => {
-      setAddListModal(!addListModal)
-    }
+  const [addListModal, setAddListModal] = useState(false);
+  const showModal = () => {
+    setAddListModal(!addListModal);
+  };
 
-  useEffect( () => {
-    console.log('inside use effect in app js')
+  useEffect(() => {
+    console.log('inside use effect in app js');
     const setUpdateLists = async () => {
       const stringified = await JSON.stringify(shoppingLists);
       try {
-      await AsyncStorage.setItem('newStorage', stringified);
-    } catch (e) {
-      console.log('Error message', e)
-        }}
-        setUpdateLists()
-  }, [])
+        await AsyncStorage.setItem('newStorage', stringified);
+      } catch (e) {
+        console.log('Error message', e);
+      }
+    };
+    setUpdateLists();
+  }, [shoppingLists]);
 
-  useEffect( () => {
+  useEffect(() => {
     const getLists = async () => {
       try {
-      const jsonValue = await AsyncStorage.getItem('newStorage');
-      const data = await JSON.parse(jsonValue || []);
-      setShoppingLists(data);
+        const jsonValue = await AsyncStorage.getItem('newStorage');
+        const data = await JSON.parse(jsonValue || []);
+        setShoppingLists(data);
       } catch (e) {
-      console.log('Error message', e)
+        console.log('Error message', e);
       }
-    }
+    };
     getLists();
-  }, [])
+  }, []);
 
-  const addList = (listName) => {
+  const addList = listName => {
     if (shoppingLists.some(list => list.name === listName)) {
       Alert.alert('A list with that title already exists');
     } else {
-      setShoppingLists( shoppingLists => {
-        return [{key: uuidv4(), name: listName, items: []},...shoppingLists]
+      setShoppingLists(shoppingLists => {
+        return [{ key: uuidv4(), name: listName, items: [] }, ...shoppingLists];
       });
-      Alert.alert(`${listName} created`);
+      ToastAndroid.showWithGravity(`${listName} created`, ToastAndroid.SHORT, ToastAndroid.CENTER);
     }
-  }
+  };
 
-  const deleteList = (listName) => {
-    setShoppingLists( shoppingLists => {
-      return [...shoppingLists.filter(list => list.name !== listName)]
+  const deleteList = listName => {
+    setShoppingLists(shoppingLists => {
+      return [...shoppingLists.filter(list => list.name !== listName)];
     });
-    Alert.alert(`${listName} has been deleted`);
-  }
+    ToastAndroid.showWithGravity(
+      `${listName} has been deleted`,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER
+    );
+  };
 
-  const onShare = (items) => {
-    items = items.map(item => ' ' + item.name).toString()
-    items = `Items to buy: ${items}`
+  const onShare = items => {
+    items = `Items to buy: ${items.map(item => ' ' + item.name).toString()}`;
     Share.share({
-      message: items.toString()
-      })
-    .then(res => console.log(res))
-    .catch(e => console.log(e));
-    };
+      message: items.toString(),
+    })
+      .then(res => console.log(res))
+      .catch(e => console.log(e));
+  };
 
-  const isCompleted = (key) => {
+  const isCompleted = key => {
     setShoppingLists(prevList => {
       let listItems = [];
-      for (let i=0; i<prevList.length; i++) {
-        if (prevList[i].items.some(i => i.key===key)) {
-          listItems = prevList[i].items
+      for (let i = 0; i < prevList.length; i++) {
+        if (prevList[i].items.some(i => i.key === key)) {
+          listItems = prevList[i].items;
           let itemToUpdate = listItems.find(item => item.key === key);
-          itemToUpdate.completed = !itemToUpdate.completed
+          itemToUpdate.completed = !itemToUpdate.completed;
         }
       }
-      return [...prevList]
-    })
-  }
+      return [...prevList];
+    });
+  };
 
-  const deleteItem = (key) => {
+  const deleteItem = key => {
     setShoppingLists(prevList => {
       let list;
-      for (let i=0; i<prevList.length; i++) {
-        let listItems = []
-        if (prevList[i].items && prevList[i].items.some(i => i.key===key)) {
-          list = prevList[i]
-          listItems = list.items
-          const filteredListItems = listItems.filter(item => item.key !==key)
-          prevList[i].items = [...filteredListItems]
+      for (let i = 0; i < prevList.length; i++) {
+        let listItems = [];
+        if (prevList[i].items && prevList[i].items.some(i => i.key === key)) {
+          list = prevList[i];
+          listItems = list.items;
+          const filteredListItems = listItems.filter(item => item.key !== key);
+          prevList[i].items = [...filteredListItems];
         }
       }
-      return [...prevList]
-    })
-  }
+      return [...prevList];
+    });
+  };
 
   const inputManually = (product, list) => {
-    setTitle((oldTitle)=> oldTitle + 'a' )
+    setTitle(oldTitle => oldTitle + 'a');
     setShoppingLists(prevList => {
-      for (let i=0; i<prevList.length; i++) {
+      for (let i = 0; i < prevList.length; i++) {
         if (prevList[i].name === list) {
-          let newItem = {key: uuidv4(), name: product, barcode_number: 0, completed: false}
-          const updatedItems = [newItem, ...prevList[i].items, ];
+          let newItem = { key: uuidv4(), name: product, barcode_number: 0, completed: false };
+          const updatedItems = [newItem, ...prevList[i].items];
           prevList[i].items = updatedItems;
         }
       }
-      return [...prevList]
-    })
-  }
+      return [...prevList];
+    });
+  };
 
   const barcodeFound = (barcode, list) => {
     let toLookFor = barcode.data;
-    processBarcode(toLookFor)
-    .then(parsed => {
+    processBarcode(toLookFor).then(parsed => {
       setShoppingLists(prevList => {
-        for(let i=0; i<prevList.length; i++) {
-          if (prevList[i].name === list && !prevList[i].items.some(item => item.barcode_number === toLookFor)) {
-            Alert.alert(`Added: ${parsed.products[0].product_name}`);
-            const newBarcodeItem = {key: uuidv4(), name: parsed.products[0].product_name, barcode_number: parsed.products[0].barcode_number, completed: false}
+        for (let i = 0; i < prevList.length; i++) {
+          if (
+            prevList[i].name === list &&
+            !prevList[i].items.some(item => item.barcode_number === toLookFor)
+          ) {
+            ToastAndroid.showWithGravity(
+              `Added: ${parsed.products[0].product_name}`,
+              ToastAndroid.SHORT,
+              ToastAndroid.CENTER
+            );
+            const newBarcodeItem = {
+              key: uuidv4(),
+              name: parsed.products[0].product_name,
+              barcode_number: parsed.products[0].barcode_number,
+              completed: false,
+            };
             const updatedBarcodeItems = [newBarcodeItem, ...prevList[i].items];
             prevList[i].items = updatedBarcodeItems;
-            return [...prevList]
+            return [...prevList];
           } else {
-            Alert.alert(`${parsed.products[0].product_name} already on the list`)
-            return [...prevList]
+            Alert.alert(`${parsed.products[0].product_name} already on the list`);
+            return [...prevList];
           }
         }
       });
-    })
-  }
+    });
+  };
 
-  function HomeScreen({navigation}) {
+  function HomeScreen({ navigation }) {
     return (
       <View style={styles.mainContainer}>
         <ImageBackground style={styles.backgroundImage} source={require('./assets/background.jpg')}>
@@ -156,19 +172,36 @@ export default function App() {
             <View style={styles.container}>
               <Text style={styles.text}> Listy </Text>
               <Text style={styles.textBuddy}> Your Shopping Buddy </Text>
-              <TouchableOpacity style={styles.addArea} onPress={()=>showModal()}>
-                <Image source={require('./assets/plusIcon.png')} style={styles.addIcon}/>
+              <TouchableOpacity style={styles.addArea} onPress={() => showModal()}>
+                <Image source={require('./assets/plusIcon.png')} style={styles.addIcon} />
               </TouchableOpacity>
-                <Text style={styles.addList}>Add list</Text>
-                <AddListModal addList={addList} addListModal={addListModal} showModal={showModal}/>
+              <Text style={styles.addList}>Add list</Text>
+              <AddListModal addList={addList} addListModal={addListModal} showModal={showModal} />
             </View>
-          <View style={styles.lists}>
-          <FlatList data={shoppingLists} keyExtractor={item => item.key} horizontal={true} showsHorizontalScrollIndicator={false}
-          renderItem={({item}) => <List title={title} navigation={navigation} deleteItem={deleteItem} isCompleted={isCompleted} item={item} onShare={onShare} deleteList={deleteList} shoppingLists={shoppingLists} inputManually={inputManually} barcodeFound={barcodeFound} />}
-          />
-        </View>
-      </View>
-      </ImageBackground>
+            <View style={styles.lists}>
+              <FlatList
+                data={shoppingLists}
+                keyExtractor={item => item.key}
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <List
+                    title={title}
+                    navigation={navigation}
+                    deleteItem={deleteItem}
+                    isCompleted={isCompleted}
+                    item={item}
+                    onShare={onShare}
+                    deleteList={deleteList}
+                    shoppingLists={shoppingLists}
+                    inputManually={inputManually}
+                    barcodeFound={barcodeFound}
+                  />
+                )}
+              />
+            </View>
+          </View>
+        </ImageBackground>
       </View>
     );
   }
@@ -177,27 +210,38 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        <Stack.Screen name="Home" component={HomeScreen}/>
-        <Stack.Screen name='MainScreen'>
-          {props => <MainScreen title={title} onShare={onShare} deleteItem={deleteItem} isCompleted={isCompleted} shoppingLists={shoppingLists} deleteList={deleteList} inputManually={inputManually} barcodeFound={barcodeFound}
-          {...props} />}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="MainScreen">
+          {props => (
+            <MainScreen
+              title={title}
+              onShare={onShare}
+              deleteItem={deleteItem}
+              isCompleted={isCompleted}
+              shoppingLists={shoppingLists}
+              deleteList={deleteList}
+              inputManually={inputManually}
+              barcodeFound={barcodeFound}
+              {...props}
+            />
+          )}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
+}
 
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    margin: 0
+    margin: 0,
   },
   mainMain: {
-    backgroundColor:  '#00000020',
-    color:'#FFFFFF',
+    backgroundColor: '#00000020',
+    color: '#FFFFFF',
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -220,17 +264,17 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   backgroundImage: {
-    flex:1,
+    flex: 1,
     resizeMode: 'stretch',
     justifyContent: 'center',
-    margin: 0
+    margin: 0,
   },
   text: {
     fontSize: 50,
     textAlign: 'center',
     color: 'black',
     fontWeight: 'bold',
-    fontFamily: 'cursive'
+    fontFamily: 'cursive',
   },
   textBuddy: {
     fontFamily: 'serif',
@@ -247,7 +291,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 3,
     padding: 3,
-    marginHorizontal: 3
+    marginHorizontal: 3,
   },
   addIcon: {
     margin: 2,
@@ -257,7 +301,7 @@ const styles = StyleSheet.create({
   lists: {
     flex: 6,
     marginTop: 10,
-    marginHorizontal: 15
+    marginHorizontal: 15,
   },
   addList: {
     fontSize: 14,
