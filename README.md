@@ -11,6 +11,8 @@ Listy saves you the trouble of creating lists over and over again, why don't you
 
 You just finished the milk from the fridge? :anguished: It is possible that you will forget to buy it when you are out and about :confused: STOP! Scan the barcode before throwing the milk out and never go without milk again
 
+![Listy - your shopping buddy](demo/listy-demo.gif)
+
 ### :star: How to get it up and running!
 
 :exclamation: To run Listy on your computer/simulator you need to have Android Studio and SDK Tools installed, configured and ready to run.
