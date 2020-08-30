@@ -3,6 +3,7 @@
 Create shopping lists in a fun and easy way by scanning the barcode of the product!
 
 A simple yet effective shopping list app built in React Native using the (extremely limited in free requests :joy: ) Barcode Lookup API.
+Listy came to life in a shape of a project I was sharpening my skills on - working with an API, using React Hooks or trying(and liking) React Native for the first time! Eventually I would like to make add more features, keeping in mind the apps simple purpose, and deploy :)
 
 ### :star: How does it work?
 
@@ -11,13 +12,23 @@ Listy saves you the trouble of creating lists over and over again - why don't yo
 
 You just finished the milk from the fridge? :anguished: It is possible that you will forget to buy it when you are out and about :confused:. WAIT! Scan the barcode before throwing the milk out and never forget it again :stuck_out_tongue_winking_eye:.
 
+
+
 ![Listy - your shopping buddy](demo/listi-gif.gif)
+
+### :star: Tech Stack
+
+[React Native](https://reactnative.dev/)  
+[Barcode Scanner](https://github.com/react-native-community/react-native-camera)  
+[Barcode Lookup API](https://www.barcodelookup.com/)  
+[Async Storage](https://react-native-community.github.io/async-storage/)  
+[React Navigation](https://reactnavigation.org/)
 
 ### :star: How to get it up and running?
 
 :exclamation: To run Listy on your computer/simulator you need to have [Android Studio and SDK Tools](https://developer.android.com/studio) installed, configured and ready to run.
 
-:exclamation: Also, get your API key at the Barcode Lookup website and store it in your `.env ` that you will create at the root of the project.
+:exclamation: Also, get your API key at the [Barcode Lookup API](https://www.barcodelookup.com/) and store it in your `.env ` that you will create at the root of the project.
 
 Clone this repository and in the root folder install the dependencies to set up your environment: `npm install` or `yarn install`.
 
