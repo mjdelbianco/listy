@@ -11,7 +11,7 @@ Listy saves you the trouble of creating lists over and over again - why don't yo
 
 You just finished the milk from the fridge? :anguished: It is possible that you will forget to buy it when you are out and about :confused:. WAIT! Scan the barcode before throwing the milk out and never forget it again :stuck_out_tongue_winking_eye:.
 
-![Listy - your shopping buddy](demo/listy-gif.gif)
+![Listy - your shopping buddy](demo/listi-gif.gif)
 
 ### :star: How to get it up and running?
 
